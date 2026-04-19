@@ -1,0 +1,114 @@
+/* FinmeeStyle.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.finmee-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  background-color: #F8F9FE;
+  color: #1E1E2D;
+}
+
+/* Sidebar */
+.finmee-sidebar {
+  width: 250px;
+  background-color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #EFEFEF;
+}
+
+/* Main Content Area */
+.finmee-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 30px;
+  overflow-y: auto;
+}
+
+/* Header */
+.finmee-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* Grid for Dashboard Content */
+.finmee-dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+}
+
+/* Generic Card Style */
+.finmee-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+
+/* Summary Cards Row */
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.summary-box {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid #F0F0F0;
+}
+
+/* Tambahkan di FinmeeStyle.css */
+
+.finmee-card:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-icon:hover {
+    background-color: #f0f0f0;
+    border-radius: 50%;
+}
+
+/* Table Styling */
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.transaction-table th {
+    text-align: left;
+    color: #8A8A98;
+    font-size: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.transaction-table td {
+    padding: 12px 0;
+    font-size: 14px;
+    border-bottom: 1px solid #F8F8F8;
+}
+
+.status-income { color: #10B981; font-weight: 600; }
+.status-expense { color: #EF4444; font-weight: 600; }
+
+/* Custom Scrollbar */
+.finmee-main::-webkit-scrollbar {
+    width: 6px;
+}
+.finmee-main::-webkit-scrollbar-thumb {
+    background: #E2E8F0;
+    border-radius: 10px;
+}
