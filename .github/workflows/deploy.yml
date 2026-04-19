@@ -13,7 +13,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20' # Kita naikkan ke versi 20 agar ESLint lancar
+          node-version: '20'
 
       - name: Install Dependencies
         run: npm install
@@ -24,17 +24,19 @@ jobs:
       - name: Install and Deploy PAC
         shell: pwsh
         run: |
-          # 1. Download Power Platform CLI
-          $msiPath = "$env:TEMP\pac.msi"
-          Invoke-WebRequest -Uri "https://aka.ms/PowerAppsCLI.msi" -OutFile $msiPath
+          # 1. Buat folder untuk PAC di dalam folder proyek
+          New-Item -ItemType Directory -Force -Path ".\pac_tool"
           
-          # 2. Install secara diam-diam
-          Start-Process msiexec.exe -ArgumentList "/i $msiPath /qn" -Wait
+          # 2. Download PAC CLI versi Portable (ZIP)
+          Invoke-WebRequest -Uri "https://aka.ms/PowerAppsCLI.zip" -OutFile "pac.zip"
           
-          # 3. Panggil langsung dari lokasi instalasinya
-          $pacPath = "C:\Program Files\Microsoft Power Apps CLI\bin\pac.exe"
+          # 3. Ekstrak file ZIP
+          Expand-Archive -Path "pac.zip" -DestinationPath ".\pac_tool" -Force
           
-          # 4. Eksekusi Auth dan Push
+          # 4. Tentukan lokasi pac.exe
+          $pacPath = ".\pac_tool\bin\pac.exe"
+          
+          # 5. Jalankan Autentikasi dan Push ke Power Apps
           & $pacPath auth create --url ${{ secrets.ENVIRONMENT_URL }} --username ${{ secrets.USERNAME }} --password ${{ secrets.PASSWORD }}
           & $pacPath pcf push --publisher-prefix arta
           
