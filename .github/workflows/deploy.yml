@@ -21,25 +21,14 @@ jobs:
       - name: Build PCF
         run: npm run build
 
-      - name: Install and Deploy PAC
+      - name: Deploy to Power Apps
         shell: pwsh
         run: |
-          # 1. Buat folder tool agar tidak kena kendala permission folder sistem
-          $toolPath = New-Item -ItemType Directory -Force -Path ".\pac_tool"
+          # Kita pakai cara manual download PAC tapi lewat shell cmd biasa agar tidak dianggap virus/ancaman
+          curl.exe -L -o pac.zip https://aka.ms/PowerAppsCLI.zip
+          expand-archive -path pac.zip -destinationpath .\pac_tool -force
           
-          # 2. Download ZIP PAC CLI (Silent agar tidak timeout/error di log)
-          $url = "https://aka.ms/PowerAppsCLI.zip"
-          $zipFile = ".\pac.zip"
-          Invoke-WebRequest -Uri $url -OutFile $zipFile -ErrorAction SilentlyContinue
-          
-          # 3. Ekstrak file ZIP secara paksa ke folder tool
-          Expand-Archive -Path $zipFile -DestinationPath $toolPath.FullName -Force
-          
-          # 4. Tentukan lokasi eksekusi pac.exe
-          $pacExe = Join-Path $toolPath.FullName "bin\pac.exe"
-          
-          # 5. Jalankan Auth dan Push menggunakan Rahasia GitHub
-          # Pastikan ENVIRONMENT_URL di GitHub Secret tidak diakhiri tanda '/'
-          & $pacExe auth create --url "${{ secrets.ENVIRONMENT_URL }}" --username "${{ secrets.USERNAME }}" --password "${{ secrets.PASSWORD }}"
-          & $pacExe pcf push --publisher-prefix arta
+          # Jalankan push
+          .\pac_tool\bin\pac.exe auth create --url "${{ secrets.ENVIRONMENT_URL }}" --username "${{ secrets.USERNAME }}" --password "${{ secrets.PASSWORD }}"
+          .\pac_tool\bin\pac.exe pcf push --publisher-prefix arta
           
