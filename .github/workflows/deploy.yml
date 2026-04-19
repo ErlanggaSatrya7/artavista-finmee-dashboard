@@ -21,15 +21,23 @@ jobs:
       - name: Build PCF
         run: npm run build
 
-      - name: Install Power Platform Tools
-        uses: microsoft/powerplatform-actions/actions/install-microsoft-powerplatform-actions@v1
-
       - name: Deploy to Power Apps
-        uses: microsoft/powerplatform-actions/actions/push-pcf@v1
-        with:
-          environment-url: ${{ secrets.ENVIRONMENT_URL }}
-          app-id: ${{ secrets.CLIENT_ID }}
-          client-secret: ${{ secrets.CLIENT_SECRET }}
-          tenant-id: ${{ secrets.TENANT_ID }}
-          publisher-prefix: 'arta'
+        shell: pwsh
+        run: |
+          # 1. Download PAC CLI murni lewat curl (terbukti sukses tadi)
+          curl.exe -L -o pac.zip https://aka.ms/PowerAppsCLI.zip
+          
+          # 2. Ekstrak pakai tar.exe (tanpa OperationStopped)
+          mkdir pac_tool
+          tar.exe -xf pac.zip -C pac_tool
+          
+          # 3. Alamat pac.exe
+          $pacExe = ".\pac_tool\bin\pac.exe"
+          
+          # 4. Login pakai SERVICE PRINCIPAL (KTP Robot)
+          # Tidak akan kena MFA/HP karena pakai Client Secret
+          & $pacExe auth create --url "${{ secrets.ENVIRONMENT_URL }}" --tenant "${{ secrets.TENANT_ID }}" --applicationId "${{ secrets.CLIENT_ID }}" --clientSecret "${{ secrets.CLIENT_SECRET }}"
+          
+          # 5. Push PCF
+          & $pacExe pcf push --publisher-prefix arta
           
