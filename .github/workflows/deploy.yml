@@ -1,8 +1,7 @@
 name: Artavista Auto Deploy
 on:
   push:
-    branches: [ main ] # Jalan otomatis tiap kamu push ke branch main
-
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
@@ -10,7 +9,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -20,17 +18,18 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Power Platform CLI Deploy
+      - name: Install Power Platform CLI
         shell: pwsh
         run: |
-          # 1. Download & Install PAC CLI di server GitHub
           $msiPath = "$env:TEMP\pac.msi"
           Invoke-WebRequest -Uri "https://aka.ms/PowerAppsCLI.msi" -OutFile $msiPath
           Start-Process msiexec.exe -ArgumentList "/i $msiPath /qn" -Wait
-          
-          # 2. Tambahkan ke PATH agar bisa dipanggil
-          $env:Path += ";C:\Program Files\Microsoft Power Apps CLI\bin"
-          
-          # 3. Login & Push menggunakan Rahasia yang tadi kita buat
+          # Tambahkan ke Path untuk sesi ini secara paksa
+          echo "C:\Program Files\Microsoft Power Apps CLI\bin" >> $env:GITHUB_PATH
+
+      - name: Power Platform CLI Deploy
+        shell: pwsh
+        run: |
+          # Sekarang 'pac' seharusnya sudah dikenali
           pac auth create --url ${{ secrets.ENVIRONMENT_URL }} --username ${{ secrets.USERNAME }} --password ${{ secrets.PASSWORD }}
           pac pcf push --publisher-prefix arta
