@@ -21,17 +21,15 @@ jobs:
       - name: Build PCF
         run: npm run build
 
+      - name: Install Power Platform Tools
+        uses: microsoft/powerplatform-actions/install-microsoft-powerplatform-actions@v1
+
       - name: Deploy to Power Apps
-        shell: pwsh
-        run: |
-          # 1. Download ZIP
-          curl.exe -L -o pac.zip https://aka.ms/PowerAppsCLI.zip
+        uses: microsoft/powerplatform-actions/push-pcf@v1
+        with:
+          environment-url: ${{ secrets.ENVIRONMENT_URL }}
+          app-id: ${{ secrets.CLIENT_ID }}
+          client-secret: ${{ secrets.CLIENT_SECRET }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          publisher-prefix: 'arta'
           
-          # 2. Ekstrak pakai tar.exe (Bawaan Windows, lebih aman dari OperationStopped)
-          mkdir pac_tool
-          tar.exe -xf pac.zip -C pac_tool
-          
-          # 3. Jalankan Auth dan Push
-          $pacExe = ".\pac_tool\bin\pac.exe"
-          & $pacExe auth create --url "${{ secrets.ENVIRONMENT_URL }}" --username "${{ secrets.USERNAME }}" --password "${{ secrets.PASSWORD }}"
-          & $pacExe pcf push --publisher-prefix arta
