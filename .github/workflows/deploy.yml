@@ -18,20 +18,23 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      # Menggunakan Action resmi Microsoft versi 1 yang lebih stabil
-      - name: Install Power Platform Tools
-        uses: microsoft/powerplatform-actions/install-microsoft-powerplatform-actions@v1
-
-      # Melakukan Build PCF
       - name: Build PCF
         run: npm run build
 
-      # Melakukan Push ke Environment Artavista
-      - name: Deploy PCF
-        uses: microsoft/powerplatform-actions/push-pcf@v1
-        with:
-          environment-url: ${{ secrets.ENVIRONMENT_URL }}
-          user-name: ${{ secrets.USERNAME }}
-          password-secret: ${{ secrets.PASSWORD }}
-          publisher-prefix: 'arta'
+      - name: Install and Deploy PAC
+        shell: pwsh
+        run: |
+          # 1. Download Power Platform CLI murni
+          $msiPath = "$env:TEMP\pac.msi"
+          Invoke-WebRequest -Uri "https://aka.ms/PowerAppsCLI.msi" -OutFile $msiPath
+          
+          # 2. Install secara diam-diam (Silent Install)
+          Start-Process msiexec.exe -ArgumentList "/i $msiPath /qn" -Wait
+          
+          # 3. Panggil langsung dari lokasi instalasinya (Pasti Ada)
+          $pacPath = "C:\Program Files\Microsoft Power Apps CLI\bin\pac.exe"
+          
+          # 4. Eksekusi Auth dan Push
+          & $pacPath auth create --url ${{ secrets.ENVIRONMENT_URL }} --username ${{ secrets.USERNAME }} --password ${{ secrets.PASSWORD }}
+          & $pacPath pcf push --publisher-prefix arta
           
