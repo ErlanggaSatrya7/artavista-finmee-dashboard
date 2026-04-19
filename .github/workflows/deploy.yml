@@ -13,7 +13,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20' # Kita naikkan ke versi 20 agar ESLint lancar
 
       - name: Install Dependencies
         run: npm install
@@ -24,14 +24,14 @@ jobs:
       - name: Install and Deploy PAC
         shell: pwsh
         run: |
-          # 1. Download Power Platform CLI murni
+          # 1. Download Power Platform CLI
           $msiPath = "$env:TEMP\pac.msi"
           Invoke-WebRequest -Uri "https://aka.ms/PowerAppsCLI.msi" -OutFile $msiPath
           
-          # 2. Install secara diam-diam (Silent Install)
+          # 2. Install secara diam-diam
           Start-Process msiexec.exe -ArgumentList "/i $msiPath /qn" -Wait
           
-          # 3. Panggil langsung dari lokasi instalasinya (Pasti Ada)
+          # 3. Panggil langsung dari lokasi instalasinya
           $pacPath = "C:\Program Files\Microsoft Power Apps CLI\bin\pac.exe"
           
           # 4. Eksekusi Auth dan Push
