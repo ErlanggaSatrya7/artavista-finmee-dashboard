@@ -28,3 +28,4 @@ jobs:
           user-name: ${{ secrets.USERNAME }}
           password-secret: ${{ secrets.PASSWORD }}
           publisher-prefix: 'arta'
+          
