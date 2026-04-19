@@ -24,12 +24,12 @@ jobs:
           $msiPath = "$env:TEMP\pac.msi"
           Invoke-WebRequest -Uri "https://aka.ms/PowerAppsCLI.msi" -OutFile $msiPath
           Start-Process msiexec.exe -ArgumentList "/i $msiPath /qn" -Wait
-          # Tambahkan ke Path untuk sesi ini secara paksa
+          # Ini perintah sakti supaya folder PAC masuk ke memori GitHub
           echo "C:\Program Files\Microsoft Power Apps CLI\bin" >> $env:GITHUB_PATH
 
       - name: Power Platform CLI Deploy
         shell: pwsh
         run: |
-          # Sekarang 'pac' seharusnya sudah dikenali
+          # Sekarang panggil pac pasti bisa karena jalurnya sudah didaftarkan di atas
           pac auth create --url ${{ secrets.ENVIRONMENT_URL }} --username ${{ secrets.USERNAME }} --password ${{ secrets.PASSWORD }}
           pac pcf push --publisher-prefix arta
