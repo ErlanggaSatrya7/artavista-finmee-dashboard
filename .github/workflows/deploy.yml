@@ -24,22 +24,14 @@ jobs:
       - name: Deploy to Power Apps
         shell: pwsh
         run: |
-          # 1. Download menggunakan curl (lebih stabil di server)
+          # 1. Download ZIP
           curl.exe -L -o pac.zip https://aka.ms/PowerAppsCLI.zip
           
-          # 2. Buat folder di lokasi sementara (TEMP) agar tidak bentrok dengan izin folder proyek
-          $extractPath = "$env:TEMP\pac_tool"
-          if (Test-Path $extractPath) { Remove-Item $extractPath -Recurse -Force }
-          New-Item -ItemType Directory -Path $extractPath -Force
+          # 2. Ekstrak pakai tar.exe (Bawaan Windows, lebih aman dari OperationStopped)
+          mkdir pac_tool
+          tar.exe -xf pac.zip -C pac_tool
           
-          # 3. Ekstrak file
-          Expand-Archive -Path pac.zip -DestinationPath $extractPath -Force
-          
-          # 4. Tentukan lokasi pac.exe
-          $pacExe = "$extractPath\bin\pac.exe"
-          
-          # 5. Jalankan Auth dan Push
-          # Jika langkah ini gagal, berarti akun Artavista mewajibkan MFA (verifikasi HP)
+          # 3. Jalankan Auth dan Push
+          $pacExe = ".\pac_tool\bin\pac.exe"
           & $pacExe auth create --url "${{ secrets.ENVIRONMENT_URL }}" --username "${{ secrets.USERNAME }}" --password "${{ secrets.PASSWORD }}"
           & $pacExe pcf push --publisher-prefix arta
-          
