@@ -18,18 +18,20 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Install Power Platform CLI
-        shell: pwsh
-        run: |
-          # Install via PowerShell Script resmi
-          iex (Invoke-RestMethod -Uri https://aka.ms/PowerAppsCLI.ps1)
-          # Daftarkan jalurnya secara paksa ke sistem GitHub
-          $pacPath = Join-Path $env:LOCALAPPDATA "Microsoft\PowerAppsCLI\bin"
-          echo "$pacPath" >> $env:GITHUB_PATH
+      # Menggunakan Action resmi Microsoft versi 1 yang lebih stabil
+      - name: Install Power Platform Tools
+        uses: microsoft/powerplatform-actions/install-microsoft-powerplatform-actions@v1
 
-      - name: Deploy to Power Apps
-        shell: pwsh
-        run: |
-          # Sekarang panggil pac langsung
-          pac auth create --url ${{ secrets.ENVIRONMENT_URL }} --username ${{ secrets.USERNAME }} --password ${{ secrets.PASSWORD }}
-          pac pcf push --publisher-prefix arta
+      # Melakukan Build PCF
+      - name: Build PCF
+        run: npm run build
+
+      # Melakukan Push ke Environment Artavista
+      - name: Deploy PCF
+        uses: microsoft/powerplatform-actions/push-pcf@v1
+        with:
+          environment-url: ${{ secrets.ENVIRONMENT_URL }}
+          user-name: ${{ secrets.USERNAME }}
+          password-secret: ${{ secrets.PASSWORD }}
+          publisher-prefix: 'arta'
+          
