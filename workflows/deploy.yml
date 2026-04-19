@@ -3,6 +3,7 @@ on:
   push:
     branches: [ main ] # Jalan otomatis tiap kamu push ke branch main
 
+
 jobs:
   build-and-deploy:
     runs-on: windows-latest
