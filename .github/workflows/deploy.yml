@@ -18,19 +18,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Install Power Platform CLI
-        shell: pwsh
-        run: |
-          $msiPath = "$env:TEMP\pac.msi"
-          Invoke-WebRequest -Uri "https://aka.ms/PowerAppsCLI.msi" -OutFile $msiPath
-          Start-Process msiexec.exe -ArgumentList "/i $msiPath /qn" -Wait
+      - name: Install Power Platform Tools
+        uses: microsoft/powerplatform-actions/install-microsoft-powerplatform-actions@v0
 
-      - name: Power Platform CLI Deploy
-        shell: pwsh
-        run: |
-          # Kita panggil langsung alamat lengkapnya (Full Path)
-          $pacPath = "C:\Program Files\Microsoft Power Apps CLI\bin\pac.exe"
-          
-          # Gunakan simbol '&' untuk menjalankan path tersebut
-          & $pacPath auth create --url ${{ secrets.ENVIRONMENT_URL }} --username ${{ secrets.USERNAME }} --password ${{ secrets.PASSWORD }}
-          & $pacPath pcf push --publisher-prefix arta
+      - name: Deploy PCF
+        uses: microsoft/powerplatform-actions/push-pcf@v0
+        with:
+          environment-url: ${{ secrets.ENVIRONMENT_URL }}
+          user-name: ${{ secrets.USERNAME }}
+          password-secret: ${{ secrets.PASSWORD }}
+          publisher-prefix: 'arta'
