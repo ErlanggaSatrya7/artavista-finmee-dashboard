@@ -1,9 +1,8 @@
-/* FinmeeStyle.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .finmee-container {
   display: flex;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   font-family: 'Inter', sans-serif;
   background-color: #F8F9FE;
@@ -19,6 +18,31 @@
   flex-direction: column;
   border-right: 1px solid #EFEFEF;
 }
+
+/* --- Menu Navigasi Sidebar --- */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #8A8A98;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-item:hover:not(.active) {
+  background-color: #F8F9FE;
+  color: #4F46E5;
+}
+
+.nav-item.active {
+  color: #4F46E5;
+  font-weight: 600;
+  background-color: #EEF2FF;
+}
+/* ---------------------------- */
 
 /* Main Content Area */
 .finmee-main {
@@ -52,6 +76,12 @@
   box-shadow: 0 4px 20px rgba(0,0,0,0.03);
 }
 
+.finmee-card:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
 /* Summary Cards Row */
 .summary-row {
   display: grid;
@@ -67,38 +97,31 @@
   border: 1px solid #F0F0F0;
 }
 
-/* Tambahkan di FinmeeStyle.css */
-
-.finmee-card:hover {
-    transform: translateY(-2px);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
+/* Buttons */
 .btn-icon:hover {
-    background-color: #f0f0f0;
-    border-radius: 50%;
+  background-color: #f0f0f0;
+  border-radius: 50%;
 }
 
 /* Table Styling */
 .transaction-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
 }
 
 .transaction-table th {
-    text-align: left;
-    color: #8A8A98;
-    font-size: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #F0F0F0;
+  text-align: left;
+  color: #8A8A98;
+  font-size: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #F0F0F0;
 }
 
 .transaction-table td {
-    padding: 12px 0;
-    font-size: 14px;
-    border-bottom: 1px solid #F8F8F8;
+  padding: 12px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #F8F8F8;
 }
 
 .status-income { color: #10B981; font-weight: 600; }
@@ -106,9 +129,9 @@
 
 /* Custom Scrollbar */
 .finmee-main::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 .finmee-main::-webkit-scrollbar-thumb {
-    background: #E2E8F0;
-    border-radius: 10px;
+  background: #E2E8F0;
+  border-radius: 10px;
 }

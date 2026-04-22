@@ -1,56 +1,83 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="ArtavistaUI" constructor="FinmeeDashboard" version="0.0.1" display-name-key="FinmeeDashboard" description-key="FinmeeDashboard description" control-type="virtual" >
-    <!--external-service-usage node declares whether this 3rd party PCF control is using external service or not, if yes, this control will be considered as premium and please also add the external domain it is using.
-    If it is not using any external service, please set the enabled="false" and DO NOT add any domain below. The "enabled" will be false by default.
-    Example1:
-      <external-service-usage enabled="true">
-        <domain>www.Microsoft.com</domain>
-      </external-service-usage>
-    Example2:
-      <external-service-usage enabled="false">
-      </external-service-usage>
-    -->
-    <external-service-usage enabled="false">
-      <!--UNCOMMENT TO ADD EXTERNAL DOMAINS
-      <domain></domain>
-      <domain></domain>
-      -->
-    </external-service-usage>
-    <!-- property node identifies a specific, configurable piece of data that the control expects from CDS -->
-    <property name="sampleProperty" display-name-key="Property_Display_Key" description-key="Property_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true" />
-    <!--
-      Property node's of-type attribute can be of-type-group attribute.
-      Example:
-      <type-group name="numbers">
-        <type>Whole.None</type>
-        <type>Currency</type>
-        <type>FP</type>
-        <type>Decimal</type>
-      </type-group>
-      <property name="sampleProperty" display-name-key="Property_Display_Key" description-key="Property_Desc_Key" of-type-group="numbers" usage="bound" required="true" />
-    -->
+  <control namespace="ArtavistaUI" constructor="ArtavistaDashboard" version="1.1.0"
+    display-name-key="Artavista Sales Dashboard"
+    description-key="Dashboard PCF lengkap: Transaksi, Jadwal, Produk, Klien, Laporan"
+    control-type="virtual">
+    <external-service-usage enabled="false" />
+
+    <!-- ══════════════════════ SINGLE VALUE PROPERTIES ══════════════════════ -->
+    <property name="UserName"       display-name-key="Nama Pengguna"          of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="TotalTask"      display-name-key="Total Omzet (teks)"     of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="UserRole"       display-name-key="Role: Admin / Sales"    of-type="SingleLine.Text" usage="bound" required="true" />
+    <property name="ClickedAction"  display-name-key="Output: Aksi Terakhir"  of-type="SingleLine.Text" usage="output" required="false" />
+    <property name="SelectedRecordId" display-name-key="Output: ID Rekaman"  of-type="SingleLine.Text" usage="output" required="false" />
+    <property name="LogoInput"      display-name-key="Logo URL (opsional)"    of-type="SingleLine.Text" usage="bound" required="false" />
+    <property name="BannerInput"    display-name-key="Banner URL (opsional)"  of-type="SingleLine.Text" usage="bound" required="false" />
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         DATASET 1: Transaksi Penjualan
+         SharePoint List: "ART_Transaksi"
+         Kolom wajib: Title, NamaPelanggan, TanggalOrder, NilaiProyek, StatusPembayaran
+    ══════════════════════════════════════════════════════════════════════ -->
+    <data-set name="ContentList" display-name-key="Daftar Transaksi Penjualan">
+      <property-set name="colTitle"    display-name-key="Kolom: Nama Layanan/Produk"   of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colPlatform" display-name-key="Kolom: Nama Pelanggan"        of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colDate"     display-name-key="Kolom: Tanggal Order"         of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colStatus"   display-name-key="Kolom: Status Pembayaran"     of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colAmount"   display-name-key="Kolom: Nilai Proyek (angka)"  of-type="SingleLine.Text" usage="bound" required="false" />
+    </data-set>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         DATASET 2: Katalog Produk / Layanan
+         SharePoint List: "ART_Produk"
+         Kolom wajib: Title, Kategori, Harga
+    ══════════════════════════════════════════════════════════════════════ -->
+    <data-set name="ProductList" display-name-key="Katalog Produk / Layanan">
+      <property-set name="colProdName"     display-name-key="Kolom: Nama Produk"        of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colProdCategory" display-name-key="Kolom: Kategori"           of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colProdPrice"    display-name-key="Kolom: Harga"              of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colProdSold"     display-name-key="Kolom: Total Terjual"      of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colProdDesc"     display-name-key="Kolom: Deskripsi"          of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colProdImage"    display-name-key="Kolom: URL Gambar"         of-type="SingleLine.Text" usage="bound" required="false" />
+    </data-set>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         DATASET 3: Data Klien / Customer
+         SharePoint List: "ART_Klien"
+         Kolom wajib: Title (nama klien)
+    ══════════════════════════════════════════════════════════════════════ -->
+    <data-set name="CustomerList" display-name-key="Daftar Klien / Customer">
+      <property-set name="colCustName"    display-name-key="Kolom: Nama Klien/Perusahaan" of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colCustContact" display-name-key="Kolom: Nama Kontak / PIC"     of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colCustEmail"   display-name-key="Kolom: Email Klien"            of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colCustPhone"   display-name-key="Kolom: No. Telepon / WA"       of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colCustSpent"   display-name-key="Kolom: Total Nilai Proyek"     of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colCustStatus"  display-name-key="Kolom: Status (Aktif/Inaktif)" of-type="SingleLine.Text" usage="bound" required="false" />
+    </data-set>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         DATASET 4: Jadwal Proyek  ← BARU
+         SharePoint List: "ART_Jadwal"
+         Kolom wajib: Title, TanggalDeadline
+    ══════════════════════════════════════════════════════════════════════ -->
+    <data-set name="ScheduleList" display-name-key="Jadwal Proyek">
+      <property-set name="colSchedTitle"    display-name-key="Kolom: Nama Proyek"        of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colSchedClient"   display-name-key="Kolom: Nama Klien"         of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colSchedStart"    display-name-key="Kolom: Tanggal Mulai"      of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colSchedDeadline" display-name-key="Kolom: Tanggal Deadline"   of-type="SingleLine.Text" usage="bound" required="true" />
+      <property-set name="colSchedProgress" display-name-key="Kolom: Progress % (0-100)" of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colSchedStatus"   display-name-key="Kolom: Status Proyek"      of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colSchedPIC"      display-name-key="Kolom: PIC / Tim"          of-type="SingleLine.Text" usage="bound" required="false" />
+      <property-set name="colSchedNotes"    display-name-key="Kolom: Catatan"            of-type="SingleLine.Text" usage="bound" required="false" />
+    </data-set>
+
     <resources>
       <code path="index.ts" order="1"/>
-      <css path="css/FinmeeStyle.css" order="1" />
+      <css path="css/ArtavistaStyle.css" order="1" />
+      <img path="img/logo-artavista.png" />
+      <img path="img/card-banner1.png" />
       <platform-library name="React" version="16.14.0" />
-      <!-- <platform-library name="Fluent" version="9.68.0" /> -->
-      <!-- UNCOMMENT TO ADD MORE RESOURCES
-      <css path="css/FinmeeDashboard.css" order="1" />
-      <resx path="strings/FinmeeDashboard.1033.resx" version="1.0.0" />
-      -->
     </resources>
-    <!-- UNCOMMENT TO ENABLE THE SPECIFIED API
-    <feature-usage>
-      <uses-feature name="Device.captureAudio" required="true" />
-      <uses-feature name="Device.captureImage" required="true" />
-      <uses-feature name="Device.captureVideo" required="true" />
-      <uses-feature name="Device.getBarcodeValue" required="true" />
-      <uses-feature name="Device.getCurrentPosition" required="true" />
-      <uses-feature name="Device.pickFile" required="true" />
-      <uses-feature name="Utility" required="true" />
-      <uses-feature name="WebAPI" required="true" />
-    </feature-usage>
-    -->
   </control>
 </manifest>

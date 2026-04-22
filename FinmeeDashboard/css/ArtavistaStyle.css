@@ -1,0 +1,232 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* =========================================================
+   CSS VARIABLES (DESIGN TOKENS)
+   ========================================================= */
+:root {
+  --arta-primary: #054CC7;
+  --arta-accent: #17C3CC;
+  --arta-bg: #F4F7FE;
+  --arta-white: #FFFFFF;
+  --text-dark: #1E293B;
+  --text-muted: #64748B;
+  --text-light: #94A3B8;
+  --border-color: #F1F5F9;
+  --border-hover: #C7D9FF;
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --transition: 0.2s ease;
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* =========================================================
+   BASE
+   ========================================================= */
+.arta-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--arta-bg);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--text-dark);
+  overflow: hidden;
+  position: relative;
+}
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+.arta-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.status-paid, .status-lunas, .status-success, .status-selesai, .status-sukses, .status-completed {
+  background-color: #DCFCE7;
+  color: #15803D;
+}
+
+.status-pending, .status-proses, .status-draft {
+  background-color: #FEF3C7;
+  color: #B45309;
+}
+
+.status-cancelled, .status-failed, .status-gagal {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+}
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+.arta-card {
+  background: var(--arta-white);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.arta-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+.arta-btn-primary {
+  background: var(--arta-primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(5, 76, 199, 0.2);
+  transition: opacity var(--transition), transform var(--transition);
+  font-family: 'Inter', sans-serif;
+}
+
+.arta-btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.arta-btn-secondary {
+  background: #F4F7FE;
+  color: var(--arta-primary);
+  border: 1px solid #E8EEF8;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition);
+  font-family: 'Inter', sans-serif;
+}
+
+.arta-btn-secondary:hover {
+  background: #E8EEF8;
+  border-color: var(--arta-primary);
+}
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+.arta-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.arta-table thead th {
+  padding: 11px 16px;
+  color: var(--text-light);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #F8FAFC;
+}
+
+.arta-table thead tr th:first-child {
+  border-radius: 8px 0 0 8px;
+}
+.arta-table thead tr th:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.arta-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background var(--transition);
+}
+
+.arta-table tbody tr:hover {
+  background: #FAFBFF;
+}
+
+.arta-table tbody td {
+  padding: 15px 16px;
+  font-size: 13px;
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+.arta-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: #FAFBFD;
+  border: 2px dashed #E2E8F0;
+  border-radius: var(--radius-md);
+  text-align: center;
+  min-height: 40vh;
+}
+
+.arta-empty-state h3 {
+  color: #475569;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 14px 0 6px;
+}
+
+.arta-empty-state p {
+  color: var(--text-light);
+  font-size: 13px;
+  max-width: 350px;
+}
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+.arta-text-muted {
+  color: var(--text-muted);
+}
+
+.arta-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

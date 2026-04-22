@@ -1,58 +1,146 @@
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
-import { FinmeeDashboardUI } from "./HelloWorld"; // <-- Memanggil class UI yang baru
+import { ArtavistaDashboardUI, IArtavistaDashboardUIProps } from "./HelloWorld";
 import * as React from "react";
 
-export class FinmeeDashboard implements ComponentFramework.ReactControl<IInputs, IOutputs> {
+export class ArtavistaDashboard implements ComponentFramework.ReactControl<IInputs, IOutputs> {
     private notifyOutputChanged: () => void;
+    private context: ComponentFramework.Context<IInputs>;
+    private currentAction: string = "";
+    private currentRecordId: string = "";
 
-    /**
-     * Empty constructor.
-     */
-    constructor() {
-        // Empty
-    }
+    constructor() { }
 
-    /**
-     * Used to initialize the control instance. Controls can kick off remote server calls and other initialization actions here.
-     * Data-set values are not initialized here, use updateView.
-     * @param context The entire property bag available to control via Context Object; It contains values as set up by the customizer mapped to property names defined in the manifest, as well as utility functions.
-     * @param notifyOutputChanged A callback method to alert the framework that the control has new outputs ready to be retrieved asynchronously.
-     * @param state A piece of data that persists in one session for a single user. Can be set at any point in a controls life cycle by calling 'setControlState' in the Mode interface.
-     */
-    public init(
-        context: ComponentFramework.Context<IInputs>,
-        notifyOutputChanged: () => void,
-        state: ComponentFramework.Dictionary
-    ): void {
+    public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, _state: ComponentFramework.Dictionary): void {
         this.notifyOutputChanged = notifyOutputChanged;
+        this.context = context;
+        this.context.mode.trackContainerResize(true);
     }
 
-    /**
-     * Called when any value in the property bag has changed. This includes field values, data-sets, global values such as container height and width, offline status, control metadata values such as label, visible, etc.
-     * @param context The entire property bag available to control via Context Object; It contains values as set up by the customizer mapped to names defined in the manifest, as well as utility functions
-     * @returns ReactElement root react element for the control
-     */
     public updateView(context: ComponentFramework.Context<IInputs>): React.ReactElement {
-        // <-- Mengganti render dari HelloWorld menjadi FinmeeDashboardUI
-        return React.createElement(
-            FinmeeDashboardUI, {}
-        );
+        this.context = context;
+
+        // ─── Helper: aman ambil string, hindari null/undefined ───
+        const s = (val: string | null | undefined, fallback = ""): string =>
+            (val !== null && val !== undefined && val !== "") ? val : fallback;
+
+        // ═══════════════════════════════════════════════
+        // DATASET 1: Transaksi — SharePoint: ART_Transaksi
+        // ═══════════════════════════════════════════════
+        const contentDS = context.parameters.ContentList;
+        let remoteContents: any[] = [];
+        if (contentDS && !contentDS.loading && contentDS.sortedRecordIds) {
+            remoteContents = contentDS.sortedRecordIds.map(id => {
+                const r = contentDS.records[id];
+                return {
+                    id: r.getRecordId(),
+                    title:    s(r.getFormattedValue("colTitle"),    "Tanpa Nama"),
+                    platform: s(r.getFormattedValue("colPlatform"), "Tidak diketahui"),
+                    date:     s(r.getFormattedValue("colDate"),     "-"),
+                    status:   s(r.getFormattedValue("colStatus"),   "Pending"),
+                    // colAmount → SP kolom "NilaiProyek" tipe Number/Currency
+                    amount:   s(r.getFormattedValue("colAmount"),   "0"),
+                };
+            });
+        }
+
+        // ═══════════════════════════════════════════════
+        // DATASET 2: Produk — SharePoint: ART_Produk
+        // ═══════════════════════════════════════════════
+        const productDS = context.parameters.ProductList;
+        let remoteProducts: any[] = [];
+        if (productDS && !productDS.loading && productDS.sortedRecordIds) {
+            remoteProducts = productDS.sortedRecordIds.map(id => {
+                const r = productDS.records[id];
+                return {
+                    id:          r.getRecordId(),
+                    name:        s(r.getFormattedValue("colProdName"),     "Produk"),
+                    category:    s(r.getFormattedValue("colProdCategory"), "Umum"),
+                    price:       s(r.getFormattedValue("colProdPrice"),    "0"),
+                    sold:        s(r.getFormattedValue("colProdSold"),     "0"),
+                    description: s(r.getFormattedValue("colProdDesc"),     ""),
+                    imageUrl:    s(r.getFormattedValue("colProdImage"),    ""),
+                };
+            });
+        }
+
+        // ═══════════════════════════════════════════════
+        // DATASET 3: Klien — SharePoint: ART_Klien
+        // ═══════════════════════════════════════════════
+        const customerDS = context.parameters.CustomerList;
+        let remoteCustomers: any[] = [];
+        if (customerDS && !customerDS.loading && customerDS.sortedRecordIds) {
+            remoteCustomers = customerDS.sortedRecordIds.map(id => {
+                const r = customerDS.records[id];
+                return {
+                    id:      r.getRecordId(),
+                    name:    s(r.getFormattedValue("colCustName"),    "Klien"),
+                    contact: s(r.getFormattedValue("colCustContact"), "-"),
+                    email:   s(r.getFormattedValue("colCustEmail"),   ""),
+                    phone:   s(r.getFormattedValue("colCustPhone"),   ""),
+                    spent:   s(r.getFormattedValue("colCustSpent"),   "0"),
+                    status:  s(r.getFormattedValue("colCustStatus"),  "Aktif"),
+                };
+            });
+        }
+
+        // ═══════════════════════════════════════════════
+        // DATASET 4: Jadwal — SharePoint: ART_Jadwal  ← BARU
+        // ═══════════════════════════════════════════════
+        const scheduleDS = context.parameters.ScheduleList;
+        let remoteSchedules: any[] = [];
+        if (scheduleDS && !scheduleDS.loading && scheduleDS.sortedRecordIds) {
+            remoteSchedules = scheduleDS.sortedRecordIds.map(id => {
+                const r = scheduleDS.records[id];
+                const progressRaw = r.getFormattedValue("colSchedProgress");
+                return {
+                    id:         r.getRecordId(),
+                    title:      s(r.getFormattedValue("colSchedTitle"),    "Proyek"),
+                    clientName: s(r.getFormattedValue("colSchedClient"),   "-"),
+                    startDate:  s(r.getFormattedValue("colSchedStart"),    ""),
+                    deadline:   s(r.getFormattedValue("colSchedDeadline"), ""),
+                    // Progress dari SP adalah angka 0-100
+                    progress:   Math.min(100, Math.max(0, parseInt(progressRaw || "0") || 0)),
+                    status:     s(r.getFormattedValue("colSchedStatus"),   "Belum Mulai"),
+                    pic:        s(r.getFormattedValue("colSchedPIC"),      "-"),
+                    notes:      s(r.getFormattedValue("colSchedNotes"),    ""),
+                };
+            });
+        }
+
+        // ─── Handler aksi user (output ke Power Apps) ───
+        const handleTriggerAction = (actionName: string, recordId?: string) => {
+            this.currentAction = actionName;
+            this.currentRecordId = recordId || "";
+            this.notifyOutputChanged();
+            setTimeout(() => {
+                this.currentAction = "";
+                this.currentRecordId = "";
+                this.notifyOutputChanged();
+            }, 500);
+        };
+
+        const props: IArtavistaDashboardUIProps = {
+            userName:  s(context.parameters.UserName.raw,  "Admin"),
+            totalTask: s(context.parameters.TotalTask.raw, "0"),
+            userRole:  s(context.parameters.UserRole.raw,  "Admin"),
+            contents:  remoteContents,
+            products:  remoteProducts,
+            customers: remoteCustomers,
+            schedules: remoteSchedules,
+            triggerAction: handleTriggerAction,
+            logoSrc:   context.parameters.LogoInput?.raw   || "",
+            bannerSrc: context.parameters.BannerInput?.raw || "",
+        };
+
+        return React.createElement(ArtavistaDashboardUI, props);
     }
 
-
-    /**
-     * It is called by the framework prior to a control receiving new data.
-     * @returns an object based on nomenclature defined in manifest, expecting object[s] for property marked as "bound" or "output"
-     */
     public getOutputs(): IOutputs {
-        return {};
+        return {
+            ClickedAction:    this.currentAction,
+            SelectedRecordId: this.currentRecordId,
+        };
     }
 
-    /**
-     * Called when the control is to be removed from the DOM tree. Controls should use this call for cleanup.
-     * i.e. cancelling any pending remote calls, removing listeners, etc.
-     */
-    public destroy(): void {
-        // Add code to cleanup control if necessary
-    }
+    public destroy(): void { }
 }
