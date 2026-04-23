@@ -14,7 +14,8 @@ export interface IDashboardViewProps extends ISharedViewProps {
     isTablet?: boolean;
 }
 
-// ─── Helpers ────────────────────────────────────────────────
+// ─── [MAINTENANCE NOTE]: FUNGSI HELPERS UTILITY ─────────────────────────────
+// Fungsi ini mengubah string tanggal dari SharePoint (DD/MM/YYYY) menjadi tipe Date
 const parseDate = (str: string): Date | null => {
     if (!str || str === '-') return null;
     const d = new Date(str);
@@ -27,6 +28,7 @@ const parseDate = (str: string): Date | null => {
     return null;
 };
 
+// Fungsi menghitung sisa hari dari hari ini ke tanggal deadline
 const daysUntil = (str: string): number | null => {
     const d = parseDate(str);
     if (!d) return null;
@@ -34,10 +36,28 @@ const daysUntil = (str: string): number | null => {
     return Math.ceil((d.getTime() - t.getTime()) / 86400000);
 };
 
-// ════════════════════════════════════════════════════════════
+// Fungsi membersihkan format uang (misal "Rp 15.000.000" jadi angka murni 15000000)
+// Penting agar data tipe Text dari SharePoint bisa dihitung matematikanya.
+const parseAmount = (val: string | number | undefined): number => {
+    if (!val) return 0;
+    const cleaned = String(val).replace(/[Rp\s.,\u00A0]/g, '');
+    return parseFloat(cleaned) || 0;
+};
+
+// Fungsi untuk merapikan angka kembali menjadi format teks Rupiah singkatan (M, jt, rb)
+const formatRp = (val: number): string => {
+    if (val >= 1_000_000_000) return `Rp ${(val / 1_000_000_000).toFixed(1)}M`;
+    if (val >= 1_000_000) return `Rp ${(val / 1_000_000).toFixed(1)}jt`;
+    if (val >= 1_000) return `Rp ${(val / 1_000).toFixed(0)}rb`;
+    return `Rp ${val}`;
+};
+// ────────────────────────────────────────────────────────────────────────────
+
+
 export const DashboardView: React.FC<IDashboardViewProps> = ({
     contents, customers, schedules = [], totalTask, isEmpty, navigate, onAction, isMobile, isTablet
 }) => {
+    // ─── [MAINTENANCE NOTE]: KALKULASI STATISTIK DASAR ──────────────────────
     const uniqueClients = customers.length;
     const orderCount = contents.length;
     const activeProjects = schedules.filter(s => s.status === 'Proses').length;
@@ -50,7 +70,7 @@ export const DashboardView: React.FC<IDashboardViewProps> = ({
     const paidPct = orderCount === 0 ? 0 : Math.round((paidCount / orderCount) * 100);
     const pendingPct = 100 - paidPct;
 
-    // Upcoming deadlines (nearest 3, not selesai)
+    // Filter jadwal untuk mengambil 3 deadline yang paling mepet (dan belum selesai)
     const upcomingDeadlines = [...schedules]
         .filter(s => s.status !== 'Selesai')
         .sort((a, b) => {
@@ -59,6 +79,39 @@ export const DashboardView: React.FC<IDashboardViewProps> = ({
             return da - db;
         })
         .slice(0, 3);
+    // ────────────────────────────────────────────────────────────────────────
+
+
+    // ─── [MAINTENANCE NOTE]: LOGIKA HITUNG OMZET & TARGET ───────────────────
+    // 1. Menghitung total omzet SEPANJANG WAKTU
+    const totalOmzet = contents.reduce((sum, c) => sum + parseAmount(c.amount), 0);
+
+    const now = new Date();
+
+    // 2. Menghitung omzet HANYA PADA BULAN INI (berdasarkan TanggalOrder)
+    const currMonthRevenue = contents.filter(c => {
+        const d = parseDate(c.date);
+        return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).reduce((s, c) => s + parseAmount(c.amount), 0);
+
+    // 3. Menghitung omzet HANYA PADA BULAN LALU (untuk perbandingan M-o-M)
+    const prevMonthRevenue = contents.filter(c => {
+        const d = parseDate(c.date);
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return d && d.getMonth() === prev.getMonth() && d.getFullYear() === prev.getFullYear();
+    }).reduce((s, c) => s + parseAmount(c.amount), 0);
+
+    // 4. PENGATURAN TARGET BULANAN
+    // UBAH ANGKA DI BAWAH INI UNTUK MENGGANTI TARGET OMZET BULANAN PERUSAHAAN
+    const TARGET_BULANAN = 50000000; // Contoh: Rp 50.000.000
+
+    // Menghitung persentase tercapainya target bulan ini (maksimal 100%)
+    const targetPct = Math.min(Math.round((currMonthRevenue / TARGET_BULANAN) * 100), 100);
+
+    // Menghitung kenaikan/penurunan dari bulan lalu
+    const momChange = prevMonthRevenue === 0 ? 0
+        : Math.round(((currMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100);
+    // ────────────────────────────────────────────────────────────────────────
 
     const isNarrow = isMobile || isTablet;
 
@@ -90,7 +143,7 @@ export const DashboardView: React.FC<IDashboardViewProps> = ({
                             margin: 0, color: 'rgba(255,255,255,0.85)',
                             fontSize: isMobile ? '12px' : '13px', lineHeight: 1.65, textAlign: 'left',
                         }}>
-                            Pantau metrik pendapatan bulanan dan performa produk Artavista secara real-time.
+                            Pantau metrik pendapatan bulanan dan performa layanan Artavista secara real-time.
                         </p>
                     </div>
                     {!isMobile && (
@@ -108,10 +161,10 @@ export const DashboardView: React.FC<IDashboardViewProps> = ({
 
                 {/* Metric Cards — 4 kartu */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
-                    <MetricCard title="Total Omzet"    value={`$${totalTask}`}          sub="Pendapatan keseluruhan" icon={<DollarSign size={16} color="#054CC7" />}  color="#054CC7" bg="#EEF4FF" />
-                    <MetricCard title="Pesanan Masuk"  value={String(orderCount)}        sub="Total transaksi"       icon={<ShoppingCart size={16} color="#7C3AED" />} color="#7C3AED" bg="#F3F0FF" />
-                    <MetricCard title="Klien Aktif"    value={String(uniqueClients)}     sub="Customer terdaftar"    icon={<Users size={16} color="#059669" />}        color="#059669" bg="#ECFDF5" />
-                    <MetricCard title="Proyek Aktif"   value={String(activeProjects)}    sub="Sedang dikerjakan"     icon={<Calendar size={16} color="#D97706" />}     color="#D97706" bg="#FFFBEB" />
+                    <MetricCard title="Total Omzet" value={formatRp(totalOmzet)} sub="Pendapatan keseluruhan" icon={<DollarSign size={16} color="#054CC7" />} color="#054CC7" bg="#EEF4FF" />
+                    <MetricCard title="Pesanan Masuk" value={String(orderCount)} sub="Total transaksi" icon={<ShoppingCart size={16} color="#7C3AED" />} color="#7C3AED" bg="#F3F0FF" />
+                    <MetricCard title="Klien Aktif" value={String(uniqueClients)} sub="Customer terdaftar" icon={<Users size={16} color="#059669" />} color="#059669" bg="#ECFDF5" />
+                    <MetricCard title="Proyek Aktif" value={String(activeProjects)} sub="Sedang dikerjakan" icon={<Calendar size={16} color="#D97706" />} color="#D97706" bg="#FFFBEB" />
                 </div>
 
                 {/* Transaksi Terkini */}
@@ -159,22 +212,24 @@ export const DashboardView: React.FC<IDashboardViewProps> = ({
             {/* ══ KOLOM KANAN ══ */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flexShrink: 0, width: isNarrow ? '100%' : '234px' }}>
 
-                {/* Target Bulanan */}
+                {/* Target Bulanan (Sudah Terkoneksi dengan Kalkulasi Dinamis) */}
                 <div style={CARD_STYLE}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
                         <div>
                             <p style={CARD_LABEL}>Target Bulanan</p>
-                            <div style={{ fontSize: '32px', fontWeight: 800, color: '#0F172A', lineHeight: 1, marginTop: '4px' }}>78%</div>
+                            <div style={{ fontSize: '32px', fontWeight: 800, color: '#0F172A', lineHeight: 1, marginTop: '4px' }}>{targetPct}%</div>
                         </div>
                         <div style={{ background: '#EEF4FF', padding: '8px', borderRadius: '10px' }}>
                             <Target size={18} color="#054CC7" />
                         </div>
                     </div>
                     <div style={{ height: '6px', background: '#F0F4FB', borderRadius: '10px', overflow: 'hidden' }}>
-                        <div style={{ width: '78%', height: '100%', background: 'linear-gradient(90deg, #054CC7, #17C3CC)', borderRadius: '10px' }} />
+                        <div style={{ width: `${targetPct}%`, height: '100%', background: 'linear-gradient(90deg, #054CC7, #17C3CC)', borderRadius: '10px' }} />
                     </div>
                     <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#64748B', textAlign: 'left' }}>
-                        <span style={{ color: '#054CC7', fontWeight: 700 }}>+12%</span> dari bulan lalu
+                        <span style={{ color: momChange >= 0 ? '#054CC7' : '#DC2626', fontWeight: 700 }}>
+                            {momChange >= 0 ? '+' : ''}{momChange}%
+                        </span> dari bulan lalu
                     </p>
                 </div>
 
@@ -231,10 +286,10 @@ export const DashboardView: React.FC<IDashboardViewProps> = ({
                     <p style={{ ...CARD_LABEL, marginBottom: '12px' }}>Akses Cepat</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {[
-                            { label: 'Lihat Transaksi',  menu: 'Transactions', icon: <ShoppingCart size={14} color="#054CC7" />, bg: '#EEF4FF', color: '#054CC7' },
-                            { label: 'Jadwal Proyek',    menu: 'Schedule',     icon: <Calendar size={14} color="#7C3AED" />,     bg: '#F3F0FF', color: '#7C3AED' },
-                            { label: 'Data Produk',      menu: 'Products',     icon: <Package size={14} color="#059669" />,      bg: '#ECFDF5', color: '#059669' },
-                            { label: 'Laporan & Analitik', menu: 'Reports',    icon: <TrendingUp size={14} color="#D97706" />,   bg: '#FFFBEB', color: '#D97706' },
+                            { label: 'Lihat Transaksi', menu: 'Transactions', icon: <ShoppingCart size={14} color="#054CC7" />, bg: '#EEF4FF', color: '#054CC7' },
+                            { label: 'Jadwal Proyek', menu: 'Schedule', icon: <Calendar size={14} color="#7C3AED" />, bg: '#F3F0FF', color: '#7C3AED' },
+                            { label: 'Data Produk', menu: 'Products', icon: <Package size={14} color="#059669" />, bg: '#ECFDF5', color: '#059669' },
+                            { label: 'Laporan & Analitik', menu: 'Reports', icon: <TrendingUp size={14} color="#D97706" />, bg: '#FFFBEB', color: '#D97706' },
                         ].map(item => (
                             <button key={item.menu} onClick={() => navigate(item.menu)}
                                 style={{
@@ -259,7 +314,8 @@ export const DashboardView: React.FC<IDashboardViewProps> = ({
     );
 };
 
-// ─── Shared Styles ───────────────────────────────────────────
+// ─── [MAINTENANCE NOTE]: SHARED STYLES & SUB-COMPONENTS ─────────────────────
+// Bagian di bawah ini hanya mengatur gaya visual (CSS in JS) dan komponen kecil
 const CARD_STYLE: React.CSSProperties = {
     background: 'white', padding: '20px', borderRadius: '16px',
     boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid #EEF2F9',
@@ -273,7 +329,6 @@ const LINK_BTN: React.CSSProperties = {
     fontSize: '12px', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap',
 };
 
-// ─── Sub Components ──────────────────────────────────────────
 const MetricCard = ({ title, value, sub, icon, color, bg }: {
     title: string; value: string; sub: string; icon: React.ReactNode; color: string; bg: string;
 }) => (
